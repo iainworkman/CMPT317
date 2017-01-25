@@ -1,6 +1,9 @@
 import math
+import sys
+import random
+import heapq
 
-from problem import ProblemState, City
+from problem import ProblemState, City, Vehicle, Package, transition_operator
 from errors import ArgumentError
 
 def generate_graph(number_of_nodes):
@@ -42,21 +45,54 @@ def main():
     """
     Main Function. Just sets up the data, for now.
     """
-    cities = None
+    # Parse command line arguments
+    try:
+        number_of_vehicles = int(sys.argv[1])
+        number_of_packages = int(sys.argv[2])
+        number_of_cities = int(sys.argv[3])
+    except IndexError:
+        print 'Could not parse arguments, expected:'
+        print 'python a1.py <vehicles> <packages> <cities>'
+        print 'NOTE: <cities> must be a perfect square'
     
-    garage_city = None
+
     
-    cities = generate_graph(25)
-    for city in cities:
-        print city.x_position,
-        print city.y_position,
-        print '[',
-        for adjacent_city in city.adjacent_cities:
-            print '(' + str(adjacent_city.x_position) + ', ' + str(adjacent_city.y_position) + ')',
-        print ']'
-        
+    cities = generate_graph(number_of_cities)
+    
+    # initialize the start state
     start_state = ProblemState()
-    # Todo: Initialize start state
+    
+    # # randomly pick a city to be a garage
+    start_state.garage_city = random.choice(cities)
+    
+    # # Initialize the vehicles
+    for i_vehicle in range(0, number_of_vehicles):
+        new_vehicle = Vehicle()
+        new_vehicle.current_city = start_state.garage_city
+        start_state.vehicles.append(new_vehicle)
+    
+    # # Initialize the packages    
+    for i_package in range(0, number_of_packages):
+        new_package = Package()
+        # # # Randomly pck a source for the package
+        new_package.source = random.choice(cities)
+        
+        # # # Randomly pick a DIFFERENT city for the destination
+        while new_package.source != new_package.destination:
+            new_package.destination = random.choice(cities)
+            
+        start_state.packages.append(new_package)
+    
+    search_space = [start_state]
+    
+    while True:
+        current_first_state = heapq.heappop(search_space)
+        
+        successor_states = transition_operator(current_first_state)
+        
+        for state in successor_states:
+            heapq.heappush(search_space, state)
+        
     
     
 

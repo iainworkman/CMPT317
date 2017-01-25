@@ -134,7 +134,7 @@ def transition_operator(state):
     resulting_possible_states=[]
     initial_state = state.copy.deepcopy(state)
     for vehicle in state.vehicles:
-        for package in packages:
+        for package in initial_state.packages:
             if package.source == vehicle.current_city and package.vehicle == None and package.is_at_destination == False:
                 package.vehicle == vehicle
         for city in vehicle.current_city.adjacent_cities:
@@ -144,4 +144,5 @@ def transition_operator(state):
         state = initial_state
             
     
+    return resulting_possible_states
     
