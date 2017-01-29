@@ -171,23 +171,31 @@ def heuristic(state):
     """
     h_value = 0
     # If the truck does not currently have a package, we need to add the distance from the truck to that package.
-    if state.vehicle.packages and not state.vehicle.has_package and not state.vehicle.current_package == len(state.vehicle.packages):
+    if not state.vehicle.has_package and not state.vehicle.current_package == len(state.vehicle.packages):
         destination = state.vehicle.packages[state.vehicle.current_package].source
         delta_x = destination.x_position - state.vehicle.current_city.x_position
         delta_y = destination.y_position - state.vehicle.current_city.y_position
         h_value += sqrt(delta_x**2 + delta_y**2)
 
+    for i in range(state.vehicle.current_package, len(state.vehicle.packages)):
+        h_value += state.vehicle.packages[i].estimated_distance_to_destination()
+
+        if i+1 < len(state.vehicle.packages):
+            h_value += state.vehicle.packages[i].destination.distance_to_city(
+                state.vehicle.packages[i+1].source
+            )
+
     for package in state.vehicle.packages:
         h_value += package.estimated_distance_to_destination()
 
     # Add in the distance to garage.
-    if state.vehicle.packages:
+    if not state.vehicle.has_package and not state.vehicle.current_package == len(state.vehicle.packages):
         destination = state.vehicle.packages[len(state.vehicle.packages) - 1].destination
         delta_x = destination.x_position - state.garage_city.x_position
         delta_y = destination.y_position - state.garage_city.y_position
         h_value += sqrt(delta_x**2 + delta_y**2)
     else:
-        h_value += state.vehicle.estimated_distance_to_garage()
+        h_value += state.vehicle.estimated_distance_to_garage(state.garage_city)
 
     return h_value
 
