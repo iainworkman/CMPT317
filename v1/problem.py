@@ -122,6 +122,15 @@ class ProblemState:
         self.distance_traveled = 0
         self.garage_city = None # required for the comparator function
 
+    def is_goal_state(self):
+        return (
+            self.vehicle.current_package == len(self.vehicle.packages)
+        ) and (
+            self.vehicle.current_city.x_position == self.garage_city.x_position
+        ) and (
+            self.vehicle.current_city.y_position == self.garage_city.y_position
+        )
+
     def __cmp__(self, other):
         """
         Comparator function for use with the heapq. To make this comply with

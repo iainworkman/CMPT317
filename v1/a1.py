@@ -103,15 +103,16 @@ def main():
             total_states_for_vehicle = 0
             # Goal state represented by truck having no packages, and being
             # at garage
-            while vehicle.packages or vehicle.current_city !=  start_state.garage_city:
+            current_state = heapq.heappop(search_space)
+            while not current_state.is_goal_state():
                 total_states_for_vehicle+=1
-                current_state = heapq.heappop(search_space)
-                if total_states_for_vehicle < 10 or total_states_for_vehicle % 100 == 0:
-                    print current_state.distance_traveled + heuristic(current_state)
-                    print "\n"
+                # if total_states_for_vehicle < 10 or total_states_for_vehicle % 100 == 0:
+                #     print current_state.distance_traveled + heuristic(current_state)
+                #     print "\n"
                 successor_states = transition_operator(current_state)
                 for state in successor_states:
                     heapq.heappush(search_space, state)
+                current_state = heapq.heappop(search_space)
 
             print "Search complete for a vehicle"
             total_distances.append(current_state.distance_traveled)
