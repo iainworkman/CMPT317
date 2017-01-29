@@ -97,6 +97,7 @@ def main():
 
         total_distances = []
         total_states = []
+        total_time = 0
         for vehicle in vehicles:
             search_space = [start_state]
             start_state.vehicle = vehicle
@@ -104,6 +105,7 @@ def main():
             # Goal state represented by truck having no packages, and being
             # at garage
             current_state = heapq.heappop(search_space)
+            start_time = time.time()
             while not current_state.is_goal_state():
                 total_states_for_vehicle+=1
                 # if total_states_for_vehicle < 10 or total_states_for_vehicle % 100 == 0:
@@ -113,17 +115,19 @@ def main():
                 for state in successor_states:
                     heapq.heappush(search_space, state)
                 current_state = heapq.heappop(search_space)
-
-            print "Search complete for a vehicle"
+            search_time = time.time() - start_time
+            print "Search complete for a vehicle in {time:.2f}s".format(
+                time = search_time
+            )
+            total_time += search_time
             total_distances.append(current_state.distance_traveled)
             total_states.append(total_states_for_vehicle)
         print "Total distance travelled for all trucks: %s\n " % sum(total_distances)
         # Total number of states needed is the max number of states needed for 1 truck
         print "Total states needed: %s" % max(total_states)
-
-
-
-
-
+        print "Time taken: {time:.2f}s".format(
+            time=total_time
+        )
+        
 if __name__ == '__main__':
     main()
