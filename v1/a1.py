@@ -2,8 +2,9 @@ import math
 import sys
 import random
 import heapq
+import time
 
-from problem import ProblemState, City, Vehicle, Package, transition_operator
+from problem import ProblemState, City, Vehicle, Package, transition_operator, heuristic
 from errors import ArgumentError
 
 def generate_graph(number_of_nodes):
@@ -41,20 +42,13 @@ def generate_graph(number_of_nodes):
     return cities
 
 def assign_packages(vehicles, packages):
-    """ len(vehicles) must be > 1, len(packages) must be > 1 """
-    num_packages_per_truck = len(packages) / len(vehicles)
-    if isinstance(num_packages_per_truck, float) and not num_packages_per_truck.is_integer():
-        # give the first vehcile an extra package
-        num_packages_per_truck = int(num_packages_per_truck)
-        vehicles[0].packages.append(packages[0])
-        packages.remove(packages[0])
-
-    for vehicle in vehicles:
-        for _ in range(num_packages_per_truck):
-            vehicle.packages.append(packages[0])
-            packages.remove(packages[0])
+    i_vehicle = 0                                                                                                                                                        
+    vehicle_count = len(vehicles)                                                                                                                                        
+    for package in packages:                                                                                                                                             
+        vehicles[i_vehicle].packages.append(package)                                                                                                                     
+        i_vehicle = (i_vehicle + 1) % vehicle_count
+        
     return vehicles
-
 
 
 def main():
@@ -113,12 +107,13 @@ def main():
                 total_states_for_vehicle+=1
                 current_state = heapq.heappop(search_space)
                 if total_states_for_vehicle < 10 or total_states_for_vehicle % 100 == 0:
-                    print current_state
+                    print current_state.distance_traveled + heuristic(current_state)
                     print "\n"
                 successor_states = transition_operator(current_state)
-
                 for state in successor_states:
                     heapq.heappush(search_space, state)
+
+            print "Search complete for a vehicle"
             total_distances.append(current_state.distance_traveled)
             total_states.append(total_states_for_vehicle)
         print "Total distance travelled for all trucks: %s\n " % sum(total_distances)
