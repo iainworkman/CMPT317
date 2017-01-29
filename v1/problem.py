@@ -59,90 +59,148 @@ class Package:
         delta_y = position.y_position - self.destination.y_position
         return sqrt(delta_x**2 + delta_y**2) 
         
-            
+    def __str__(self):
+        s = "source: ({source_x}, {source_y}), destination=({dest_x, dest_y}), at_destination={at_home}, vehicle={vehicle}"
+        s.format(source_x=self.source.x_position, source_y=self.source.y_position,
+                 dest_x=self.destination.x_position, dest_y=self.destination.y_position,
+                 at_home=self.is_at_destination, vehicle=self.vehicle)
+        return s
+
+
 class Vehicle:
     """
     A vehicle which picks up and drops off packages
     """
     def __init__(self):
-        self.package = None
+        self.name = -1
+        self.packages = []
+        self.current_package = 0
+        self.has_package = False
         self.current_city = None
-        
+
     def estimated_distance_to_garage(self, garage_city):
         """
-        Helper method which returns the straight line distance from the 
+        Helper method which returns the straight line distance from the
         vehicle's current location to the provided garage_city.
         """
         if not self.current_city:
             raise StateError("Uninitialized Vehicle instance")
-            
+
         delta_x = self.current_city.x_position - garage_city.x_position
         delta_y = self.current_city.y_position - garage_city.y_position
-        return sqrt(delta_x**2 + delta_y**2)  
-        
-        
+        return sqrt(delta_x**2 + delta_y**2)
+
+    def __str__(self):
+        s = """Name: {name}, current_city: ({x_cord}, {y_cord}),
+        have_package: {have_package}\n\tPackages: {packages}"""
+        s.format(name=self.name, x_cord=self.current_city.x_position, y_cord=self.current_city.y_cord,
+                  have_package=self.has_package, packages=self.packages)
+        return s
+
 class ProblemState:
     """
-    The variable state of the problem, including the all vehicles, packages and
+    The variable state of the problem, including the vehicle and
     the total distance traveled from the start state to reach this state.
     """
     def __init__(self):
-        self.vehicles = []
-        self.packages = []
+        self.vehicle = None
         self.distance_traveled = 0
         self.garage_city = None # required for the comparator function
-        
+
     def __cmp__(self, other):
         """
         Comparator function for use with the heapq. To make this comply with
         A* this will be self.distance_traveled + the heuristic value
         """
-        if not self.garage_city or not self.vehicles or not self.packages:
+        if not self.garage_city or not self.vehicle:
             raise StateError("Uninitialized State instance")
-            
+
         a_star_value = self.distance_traveled + heuristic(self)
         other_a_star = other.distance_traveled + heuristic(other)
-        
-        return a_star_value > other_a_star
-        
-        
+
+        return a_star_value < other_a_star
+
+    def __str__(self):
+        """
+        A readable version of this state
+        """
+        s = "Current_Position: (%s, %s)\n" % (self.vehicle.current_city.x_position, self.vehicle.current_city.y_position)
+        s += "Has Package: %s\n" % self.vehicle.has_package
+        s += "Packages: %s\n" % self.vehicle.packages
+        s += "Distance Travelled: %s\n" % self.distance_traveled
+        s += "Garage: %s\n" % self.garage_city
+        return s
+
+
+
 def heuristic(state):
     """
     A heuristic which estimates the travel distance required to get from the
     provided state, to the goal state. Is comprised of the sum of:
-        - The total straight line distance between each package's location() and
-          its destination.
-        - The total straight line distance between all vehicles and the
-          garage_city.
+        - The straight line distance of current vehicle's distance from
+            completing all of its package deliveries and moving to the garage.
     """
     h_value = 0
-    for package in state.packages:
+    # If the truck does not currently have a package, we need to add the distance from the truck to that package.
+    if state.vehicle.packages and not state.vehicle.has_package:
+        destination = state.vehicle.packages[state.vehicle.current_package].source
+        delta_x = destination.x_position - state.vehicle.current_city.x_position
+        delta_y = destination.y_position - state.vehicle.current_city.y_position
+        h_value += sqrt(delta_x**2 + delta_y**2)
+
+    for package in state.vehicle.packages:
         h_value += package.estimated_distance_to_destination()
-    
-    for vehicle in state.vehicles:
-        h_value += vehicle.estimated_distance_to_garage(state.garage_city)
-        
+
+    # Add in the distance to garage.
+    if state.vehicle.packages:
+        destination = state.vehicle.packages[len(state.vehicle.packages) - 1].destination
+        delta_x = destination.x_position - state.garage_city.x_position
+        delta_y = destination.y_position - state.garage_city.y_position
+        h_value += sqrt(delta_x**2 + delta_y**2)
+    else:
+        h_value += state.vehicle.estimated_distance_to_garage()
+
     return h_value
 
 
 def transition_operator(state):
     """
         A method that will recieve as an input the current state of the problem
-        and will output all the possible states resulting from the current 
-        state as a priority queue based 
+        and will output all the possible states resulting from the current
+        state.
     """
-    resulting_possible_states=[]
-    initial_state = state.copy.deepcopy(state)
-    for vehicle in state.vehicles:
-        for package in initial_state.packages:
-            if package.source == vehicle.current_city and package.vehicle == None and package.is_at_destination == False:
-                package.vehicle == vehicle
-        for city in vehicle.current_city.adjacent_cities:
-            initial_city = copy.deepcopy(vehicle.current_city)
-            vehicle.current_city = city
-            resulting_possible_states.append(copy.deepcopy(state))
-        state = initial_state
-            
-    
-    return resulting_possible_states
-    
+    possible_states=[]
+
+    """
+        Creating possible states for travelling to each adjacent city
+    """
+    for city in state.vehicle.current_city.adjacent_cities:
+        new_city_state = copy.deepcopy(state)
+        distance_to_travel = state.vehicle.current_city.distance_to_city(city)
+        new_city_state.vehicle.current_city = city
+        new_city_state.distance_traveled = new_city_state.distance_traveled + distance_to_travel
+
+        possible_states.append(new_city_state)
+
+    """
+        Possible state for packge pick up
+    """
+    if state.vehicle.current_city == state.vehicle.packages[state.vehicle.current_package].source and not state.vehicle.has_package:
+         new_pick_up_state = copy.deepcopy(state)
+         new_pick_up_state.vehicle.packages[new_pick_up_state.vehicle.current_package].vehicle = new_pick_up_state.vehicle
+         new_pick_up_state.vehicle.has_package = True
+         possible_states.append(new_pick_up_state)
+
+    """
+        Possible state for packge drop off
+    """
+    if state.vehicle.current_city == state.vehicle.packages[state.vehicle.current_package].destination and state.vehicle.has_package:
+         new_drop_off_state = copy.deepcopy(state)
+         new_drop_off_state.vehicle.packages[new_pick_up_state.vehicle.current_package].vehicle = None
+         new_drop_off_state.vehicle.packages[new_pick_up_state.vehicle.current_package].is_at_destination = True
+         new_drop_off_state.vehicle.has_package = False
+         new_drop_off_state.vehicle.current_package += 1
+
+         possible_states.append(new_drop_off_state)
+
+    return possible_states
