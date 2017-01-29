@@ -57,14 +57,13 @@ class Package:
         position = self.location()
         delta_x = position.x_position - self.destination.x_position
         delta_y = position.y_position - self.destination.y_position
-        return sqrt(delta_x**2 + delta_y**2) 
-        
+        return sqrt(delta_x**2 + delta_y**2)
+
     def __str__(self):
-        s = "source: ({source_x}, {source_y}), destination=({dest_x, dest_y}), at_destination={at_home}, vehicle={vehicle}"
-        s.format(source_x=self.source.x_position, source_y=self.source.y_position,
-                 dest_x=self.destination.x_position, dest_y=self.destination.y_position,
-                 at_home=self.is_at_destination, vehicle=self.vehicle)
-        return s
+        s = "source: ({source_x}, {source_y}), destination=({dest_x}, {dest_y}), at_destination={at_home}, vehicle={vehicle}"
+        return s.format(source_x=self.source.x_position, source_y=self.source.y_position,
+                        dest_x=self.destination.x_position, dest_y=self.destination.y_position,
+                        at_home=self.is_at_destination, vehicle=self.vehicle)
 
 
 class Vehicle:
@@ -118,7 +117,12 @@ class ProblemState:
         a_star_value = self.distance_traveled + heuristic(self)
         other_a_star = other.distance_traveled + heuristic(other)
 
-        return a_star_value < other_a_star
+        if a_star_value > other_a_star:
+            return 1
+        elif a_star_value == other_a_star:
+          return 0
+        else:
+            return -1
 
     def __str__(self):
         """
@@ -126,9 +130,9 @@ class ProblemState:
         """
         s = "Current_Position: (%s, %s)\n" % (self.vehicle.current_city.x_position, self.vehicle.current_city.y_position)
         s += "Has Package: %s\n" % self.vehicle.has_package
-        s += "Packages: %s\n" % self.vehicle.packages
+        s += "Packages: %s\n" % [str(p) for p in self.vehicle.packages]
         s += "Distance Travelled: %s\n" % self.distance_traveled
-        s += "Garage: %s\n" % self.garage_city
+        s += "Garage: (%s, %s)\n" % (self.garage_city.x_position, self.garage_city.y_position)
         return s
 
 

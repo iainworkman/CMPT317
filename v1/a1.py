@@ -11,29 +11,32 @@ def generate_graph(number_of_nodes):
     Return a graph of cities, organized in a grid, of the provided size
     """
     cities = []
-    for position in range(number_of_nodes):
+    size = int(math.sqrt(number_of_nodes))
+    if size*size != number_of_nodes:
+        raise ArgumentError("At the moment generate_graph() only takes perfect squares (3, 16, 25 etc.). Feel free to improve it.")
+    test = 0
+    for position in range(0, number_of_nodes):
         city = City()
-        city.x_position = random.randint(0,1000) + random.random()
-        city.y_position = random.randint(0,1000) + random.random()
+        city.x_position = (position) % size
+        city.y_position = int(position / size)
         cities.append(city)
 
-    for city in cities:
-        lefties = [c for c in cities if c.x_position < city.x_position]
-        righties = [c for c in cities if c.x_position > city.x_position]
-        upies = [c for c in cities if c.y_position > city.y_position]
-        downies = [c for c in cities if c.y_position < city.y_position]
+    for i_city in range(0, len(cities)):
+        city = cities[i_city]
+        x_pos = city.x_position
+        y_pos = city.y_position
 
-        if not (lefties or righties or upies or downies):
-            raise Exception("Oops this city has no neighbours.")
+        if x_pos != 0:
+            city.adjacent_cities.append(cities[i_city - 1])
 
-        if lefties:
-            city.adjacent_cities.append(max(lefties))
-        if righties:
-            city.adjacent_cities.append(min(righties))
-        if upies:
-            city.adjacent_cities.append(min(upies))
-        if downies:
-            city.adjacent_cities.append(max(downies))
+        if x_pos != size-1:
+            city.adjacent_cities.append(cities[i_city + 1])
+
+        if y_pos != 0:
+            city.adjacent_cities.append(cities[i_city - size])
+
+        if y_pos != size-1:
+            city.adjacent_cities.append(cities[i_city + size])
 
     return cities
 
@@ -109,7 +112,7 @@ def main():
             while vehicle.packages or vehicle.current_city !=  start_state.garage_city:
                 total_states_for_vehicle+=1
                 current_state = heapq.heappop(search_space)
-                if total_states_for_vehicle % 100 == 0:
+                if total_states_for_vehicle < 10 or total_states_for_vehicle % 100 == 0:
                     print current_state
                     print "\n"
                 successor_states = transition_operator(current_state)
