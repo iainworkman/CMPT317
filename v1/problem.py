@@ -185,9 +185,6 @@ def heuristic(state):
                 state.vehicle.packages[i+1].source
             )
 
-    for package in state.vehicle.packages:
-        h_value += package.estimated_distance_to_destination()
-
     # Add in the distance to garage.
     if not state.vehicle.has_package and not state.vehicle.current_package == len(state.vehicle.packages):
         destination = state.vehicle.packages[len(state.vehicle.packages) - 1].destination
