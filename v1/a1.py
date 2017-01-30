@@ -109,11 +109,15 @@ def main():
             while not current_state.is_goal_state():
                 total_states_for_vehicle+=1
                 # if total_states_for_vehicle < 10 or total_states_for_vehicle % 100 == 0:
-                #     print current_state.distance_traveled + heuristic(current_state)
-                #     print "\n"
+                print "+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++"
+                print current_state
+                print "-------------------"
                 successor_states = transition_operator(current_state)
+                print "Successors:"
                 for state in successor_states:
+                    # print state
                     heapq.heappush(search_space, state)
+                print "+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++"
                 current_state = heapq.heappop(search_space)
             search_time = time.time() - start_time
             print "Search complete for a vehicle in {time:.2f}s".format(
@@ -128,6 +132,6 @@ def main():
         print "Time taken: {time:.2f}s".format(
             time=total_time
         )
-        
+
 if __name__ == '__main__':
     main()
