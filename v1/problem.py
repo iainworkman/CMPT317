@@ -213,38 +213,15 @@ def transition_operator(state):
         distance_to_travel = state.vehicle.current_city.distance_to_city(city)
         new_city_state.vehicle.current_city = city
         new_city_state.distance_traveled = new_city_state.distance_traveled + distance_to_travel
-        if new_city_state.vehicle.can_dropoff():
+        if new_city_state.vehicle.can_pickup():
             new_city_state.vehicle.packages[new_city_state.vehicle.current_package].vehicle = new_city_state.vehicle
             new_city_state.vehicle.has_package = True
 
-        if new_city_state.vehicle.can_pickup():
+        if new_city_state.vehicle.can_dropoff():
             new_city_state.vehicle.packages[new_city_state.vehicle.current_package].vehicle = None
             new_city_state.vehicle.packages[new_city_state.vehicle.current_package].is_at_destination = True
             new_city_state.vehicle.has_package = False
             new_city_state.vehicle.current_package += 1
         possible_states.append(new_city_state)
-    #
-    # """
-    #     Possible state for packge pick up
-    # """
-    # # if state.vehicle.current_city == state.vehicle.packages[state.vehicle.current_package].source and not state.vehicle.has_package:
-    # if state.vehicle.can_pickup():
-    #     new_pick_up_state = copy.deepcopy(state)
-    #     new_pick_up_state.vehicle.packages[new_pick_up_state.vehicle.current_package].vehicle = new_pick_up_state.vehicle
-    #     new_pick_up_state.vehicle.has_package = True
-    #     possible_states.append(new_pick_up_state)
-    #
-    # """
-    #     Possible state for packge drop off
-    # """
-    # # if state.vehicle.current_city == state.vehicle.packages[state.vehicle.current_package].destination and state.vehicle.has_package:
-    # if state.vehicle.can_dropoff():
-    #     new_drop_off_state = copy.deepcopy(state)
-    #     new_drop_off_state.vehicle.packages[new_drop_off_state.vehicle.current_package].vehicle = None
-    #     new_drop_off_state.vehicle.packages[new_drop_off_state.vehicle.current_package].is_at_destination = True
-    #     new_drop_off_state.vehicle.has_package = False
-    #     new_drop_off_state.vehicle.current_package += 1
-    #
-    #     possible_states.append(new_drop_off_state)
 
     return possible_states
