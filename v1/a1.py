@@ -33,7 +33,7 @@ def generate_graph(number_of_nodes):
         if x_pos != size-1:
             city.adjacent_cities.append(cities[i_city + 1])
 
-        if y_pos != size-1:
+        if y_pos != 0:
             city.adjacent_cities.append(cities[i_city - size])
 
         if y_pos != size-1:
