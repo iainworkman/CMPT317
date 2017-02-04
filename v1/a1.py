@@ -22,24 +22,29 @@ def generate_graph(number_of_nodes):
         city.y_position = int(position / size)
         cities.append(city)
 
-    for i_city in range(0, len(cities)):
-        city = cities[i_city]
+    for i_city, city in enumerate(cities):
         x_pos = city.x_position
         y_pos = city.y_position
 
-        if x_pos != 0:
-            city.adjacent_cities.append(cities[i_city - 1])
 
-        if x_pos != size-1:
-            city.adjacent_cities.append(cities[i_city + 1])
+        uppies = [x for x in cities if x.x_position == x_pos and x.y_position == y_pos - 1]
+        downies = [x for x in cities if x.x_position == x_pos and x.y_position == y_pos + 1]
+        lefties = [x for x in cities if x.x_position == x_pos - 1 and x.y_position == y_pos]
+        righties = [x for x in cities if x.x_position == x_pos + 1 and x.y_position == y_pos]
+        if not (lefties or righties or uppies or downies):
+             raise Exception("UHOH!!! I HAVE NO NEIGHBOURS AHHHHHH!!!!!")
 
-        if y_pos != 0:
-            city.adjacent_cities.append(cities[i_city - size])
-
-        if y_pos != size-1:
-            city.adjacent_cities.append(cities[i_city + size])
+        if uppies:
+            city.adjacent_cities.append(uppies[0])
+        if downies:
+            city.adjacent_cities.append(downies[0])
+        if righties:
+            city.adjacent_cities.append(righties[0])
+        if lefties:
+            city.adjacent_cities.append(lefties[0])
 
     return cities
+
 
 def assign_packages(vehicles, packages):
     i_vehicle = 0                                                                                                                                                        
