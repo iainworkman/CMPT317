@@ -33,7 +33,7 @@ def generate_graph(number_of_nodes):
         if x_pos != size-1:
             city.adjacent_cities.append(cities[i_city + 1])
 
-        if y_pos != 0:
+        if y_pos != size-1:
             city.adjacent_cities.append(cities[i_city - size])
 
         if y_pos != size-1:
@@ -119,6 +119,7 @@ def main():
                     heapq.heappush(search_space, state)
                 print "+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++"
                 current_state = heapq.heappop(search_space)
+                search_space = []
             search_time = time.time() - start_time
             print "Search complete for a vehicle in {time:.2f}s".format(
                 time = search_time

@@ -186,7 +186,7 @@ def heuristic(state):
             )
 
     # Add in the distance to garage.
-    if not state.vehicle.has_package and not state.vehicle.current_package == len(state.vehicle.packages):
+    if not state.vehicle.current_package == len(state.vehicle.packages):
         destination = state.vehicle.packages[len(state.vehicle.packages) - 1].destination
         delta_x = destination.x_position - state.garage_city.x_position
         delta_y = destination.y_position - state.garage_city.y_position
